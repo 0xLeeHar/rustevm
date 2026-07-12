@@ -1,0 +1,10 @@
+[workspace]
+resolver = "3"
+members = [
+    # evm-sys
+    "crates/evm-sys-macros",
+    "crates/evm-sys",
+    # std-evm
+    "crates/std-evm",
+    # examples
+    "examples/my-first-contract", "crates/std-evm-macros"]

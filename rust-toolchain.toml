@@ -1,0 +1,5 @@
+[toolchain]
+# rustc_codegen_evm requires nightly for `#![feature(rustc_private)]`.
+# Pin to a specific date for reproducibility; update alongside the backend crate.
+channel = "nightly"
+components = ["rustc-dev", "rust-src", "llvm-tools"]

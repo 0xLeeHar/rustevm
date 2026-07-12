@@ -1,0 +1,11 @@
+[package]
+name = "evm-sys"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = ["prague"]
+prague    = []
+
+[dependencies]
+evm-sys-macros = { path = "../evm-sys-macros" }
