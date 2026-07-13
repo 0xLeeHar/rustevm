@@ -1,5 +1,12 @@
 #![no_std]
 
-pub fn add(a: u32, b: u32) -> u32 {
-    a + b
+use std_evm::{contract, constructor, U256};
+
+pub struct MyFirstContract;
+
+#[contract]
+impl MyFirstContract {
+    fn test() {
+        let t: U256 = U256::ZERO;
+    }
 }

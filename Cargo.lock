@@ -26,6 +26,9 @@ dependencies = [
 [[package]]
 name = "my-first-contract"
 version = "0.1.0"
+dependencies = [
+ "std-evm",
+]
 
 [[package]]
 name = "proc-macro2"
@@ -46,10 +49,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustc_codegen_evm"
+version = "0.1.0"
+
+[[package]]
 name = "std-evm"
 version = "0.1.0"
 dependencies = [
  "evm-sys",
+ "std-evm-macros",
 ]
 
 [[package]]

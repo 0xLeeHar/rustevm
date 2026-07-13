@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 evm-sys = { path = "../evm-sys" }
+std-evm-macros = { path = "../std-evm-macros" }

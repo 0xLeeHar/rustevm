@@ -35,17 +35,15 @@
 //! Functions in the `evm-sys` crate are declared with `unreachable_unchecked()`
 //! bodies.  This backend recognises calls to those functions by their link-name
 //! (e.g. `evm_sys::arithmetic::add`) and emits the corresponding EVM opcode
-//! directly instead of generating a function call.  See [`intrinsics`].
+//! directly instead of generating a function call.
 
 #![feature(rustc_private)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![allow(internal_features)]
-// The compiler-internal crates do not follow our lint configuration.
 #![allow(rustc::untranslatable_diagnostic)]
 
-// ── compiler-internal crates ────────────────────────────────────────────────
-// These are provided by the installed rustc via `rustc-dev`; they are NOT
-// normal Cargo dependencies.
+// These are provided by the installed rustc via `rustc-dev`. They are NOT normal Cargo dependencies.
+extern crate rustc_driver;
 extern crate rustc_abi;
 extern crate rustc_ast;
 extern crate rustc_codegen_ssa;
@@ -58,24 +56,13 @@ extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_target;
 
-// ── modules ──────────────────────────────────────────────────────────────────
-mod abi;
-mod backend;
-mod context;
-mod emit;
-mod intrinsics;
-
 pub use backend::EvmCodegenBackend;
 
-// ── entry point ──────────────────────────────────────────────────────────────
+mod backend;
 
-/// The symbol rustc looks for when it dlopen-s a codegen backend.
-///
-/// Point rustc at the compiled dylib:
-/// ```sh
-/// rustc -Z codegen-backend=/path/to/librustc_codegen_evm.dylib ...
-/// ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn __rustc_codegen_backend() -> Box<dyn rustc_codegen_ssa::traits::CodegenBackend> {
+    println!("Starting EVM codegen backend");
     Box::new(EvmCodegenBackend::new())
 }
+

@@ -1,5 +1,6 @@
 [package]
 name = "rustc_codegen_evm"
+authors = ["Lee Harman"]
 version = "0.1.0"
 edition = "2024"
 description = "A rustc codegen backend that emits EVM (Ethereum Virtual Machine) bytecode"
@@ -11,7 +12,7 @@ description = "A rustc codegen backend that emits EVM (Ethereum Virtual Machine)
 #
 # Prerequisites:
 #   rustup component add rustc-dev rust-src
-[[lib]]
+[lib]
 name = "rustc_codegen_evm"
 crate-type = ["dylib"]
 
