@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-std-evm = { path = "../../crates/std-evm" }
+std-evm = { path = "../../src/std/std-evm" }

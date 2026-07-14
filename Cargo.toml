@@ -2,13 +2,17 @@
 resolver = "3"
 members = [
 # evm-sys
-    "crates/evm-sys-macros",
-    "crates/evm-sys",
+    "src/std/evm-sys-macros",
+    "src/std/evm-sys",
 # std-evm
-    "crates/std-evm",
-    "crates/std-evm-macros",
-# code gen
-    "crates/rustc_codegen_evm",
-# examples
+    "src/std/std-evm",
+    "src/std/std-evm-macros",
+# shared
+    "src/std/std-evm-abi",
+# BACKEND
+    "src/backend/evm-isa",
+    "src/backend/evm-codegen",
+    "src/backend/rustc_codegen_evm",
+# EXAMPLES
     "examples/my-first-contract",
 ]

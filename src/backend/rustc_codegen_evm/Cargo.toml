@@ -6,7 +6,7 @@ edition = "2024"
 description = "A rustc codegen backend that emits EVM (Ethereum Virtual Machine) bytecode"
 
 # Must be a dylib so rustc can dlopen it at compile time.
-# The rustc internal crates are linked into the compiler itself; they are NOT
+# The rustc internal src are linked into the compiler itself; they are NOT
 # listed here as Cargo dependencies.  Instead they are accessed via
 # `#![feature(rustc_private)]` and `extern crate rustc_xxx` declarations.
 #
@@ -16,7 +16,7 @@ description = "A rustc codegen backend that emits EVM (Ethereum Virtual Machine)
 name = "rustc_codegen_evm"
 crate-type = ["dylib"]
 
-# Tells rust-analyzer where to find the compiler-private crates so that IDE
+# Tells rust-analyzer where to find the compiler-private src so that IDE
 # features work without listing them as explicit Cargo deps.
 [package.metadata.rust-analyzer]
 rustc_private = true
