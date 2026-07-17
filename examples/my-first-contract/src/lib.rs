@@ -1,12 +1,10 @@
 #![no_std]
 
-use std_evm::{U256, contract};
+use std_evm::{U256, constructor, contract};
 
 pub struct MyFirstContract;
 
 #[contract]
 impl MyFirstContract {
-    fn test() {
-        let t: U256 = U256::ZERO;
-    }
+    fn init() {}
 }
