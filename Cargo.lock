@@ -23,6 +23,7 @@ version = "0.1.0"
 name = "evm-sys"
 version = "0.1.0"
 dependencies = [
+ "evm-isa",
  "evm-sys-macros",
 ]
 
@@ -31,6 +32,7 @@ name = "evm-sys-macros"
 version = "0.1.0"
 dependencies = [
  "evm-isa",
+ "proc-macro2",
  "quote",
  "syn",
 ]
@@ -65,20 +67,24 @@ name = "rustc_codegen_evm"
 version = "0.1.0"
 dependencies = [
  "evm-codegen",
+ "evm-isa",
 ]
 
 [[package]]
 name = "std-evm"
 version = "0.1.0"
 dependencies = [
- "evm-isa",
  "evm-sys",
+ "std-evm-abi",
  "std-evm-macros",
 ]
 
 [[package]]
 name = "std-evm-abi"
 version = "0.1.0"
+dependencies = [
+ "tiny-keccak",
+]
 
 [[package]]
 name = "std-evm-macros"
@@ -86,8 +92,8 @@ version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
+ "std-evm-abi",
  "syn",
- "tiny-keccak",
 ]
 
 [[package]]

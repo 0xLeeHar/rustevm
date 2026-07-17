@@ -8,7 +8,7 @@ authors.workspace = true
 proc-macro = true
 
 [dependencies]
+std-evm-abi = { path = "../std-evm-abi" }
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "2", features = ["full"] }
-tiny-keccak = { version = "2", features = ["keccak"] }

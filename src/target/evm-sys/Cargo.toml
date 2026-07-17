@@ -10,3 +10,4 @@ prague    = []
 
 [dependencies]
 evm-sys-macros = { path = "../evm-sys-macros" }
+evm-isa = { path = "../../shared/evm-isa" }

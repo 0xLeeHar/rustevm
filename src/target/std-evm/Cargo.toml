@@ -7,4 +7,4 @@ authors.workspace = true
 [dependencies]
 evm-sys = { path = "../evm-sys" }
 std-evm-macros = { path = "../std-evm-macros" }
-evm-isa = { path = "../../shared/evm-isa" }
+std-evm-abi = { path = "../std-evm-abi" }
