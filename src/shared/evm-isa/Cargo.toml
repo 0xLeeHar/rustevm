@@ -2,5 +2,6 @@
 name = "evm-isa"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 
 [dependencies]

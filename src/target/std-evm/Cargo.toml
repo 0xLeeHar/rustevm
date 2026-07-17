@@ -2,6 +2,7 @@
 name = "std-evm"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 
 [dependencies]
 evm-sys = { path = "../evm-sys" }

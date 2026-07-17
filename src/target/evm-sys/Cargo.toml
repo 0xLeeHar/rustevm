@@ -2,6 +2,7 @@
 name = "evm-sys"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 
 [features]
 default = ["prague"]

@@ -2,5 +2,6 @@
 name = "std-evm-abi"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 
 [dependencies]
