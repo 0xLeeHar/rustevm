@@ -253,49 +253,157 @@ pub fn dup8(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U2
 
 /// DUP9 — duplicate the 9th stack item.
 #[evm_opcode(DUP9)]
-pub fn dup9(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256) -> U256 {
+pub fn dup9(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DUP10 — duplicate the 10th stack item.
 #[evm_opcode(DUP10)]
-pub fn dup10(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256) -> U256 {
+pub fn dup10(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DUP11 — duplicate the 11th stack item.
 #[evm_opcode(DUP11)]
-pub fn dup11(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256) -> U256 {
+pub fn dup11(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DUP12 — duplicate the 12th stack item.
 #[evm_opcode(DUP12)]
-pub fn dup12(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256) -> U256 {
+pub fn dup12(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DUP13 — duplicate the 13th stack item.
 #[evm_opcode(DUP13)]
-pub fn dup13(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256) -> U256 {
+pub fn dup13(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DUP14 — duplicate the 14th stack item.
 #[evm_opcode(DUP14)]
-pub fn dup14(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256, n: U256) -> U256 {
+pub fn dup14(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+    n: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DUP15 — duplicate the 15th stack item.
 #[evm_opcode(DUP15)]
-pub fn dup15(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256, n: U256, o: U256) -> U256 {
+pub fn dup15(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+    n: U256,
+    o: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DUP16 — duplicate the 16th stack item.
 #[evm_opcode(DUP16)]
-pub fn dup16(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256, n: U256, o: U256, p: U256) -> U256 {
+pub fn dup16(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+    n: U256,
+    o: U256,
+    p: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
@@ -345,54 +453,180 @@ pub fn swap7(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U
 
 /// SWAP8 — swap the 1st and 9th stack items; returns new top.
 #[evm_opcode(SWAP8)]
-pub fn swap8(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256) -> U256 {
+pub fn swap8(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP9 — swap the 1st and 10th stack items; returns new top.
 #[evm_opcode(SWAP9)]
-pub fn swap9(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256) -> U256 {
+pub fn swap9(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP10 — swap the 1st and 11th stack items; returns new top.
 #[evm_opcode(SWAP10)]
-pub fn swap10(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256) -> U256 {
+pub fn swap10(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP11 — swap the 1st and 12th stack items; returns new top.
 #[evm_opcode(SWAP11)]
-pub fn swap11(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256) -> U256 {
+pub fn swap11(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP12 — swap the 1st and 13th stack items; returns new top.
 #[evm_opcode(SWAP12)]
-pub fn swap12(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256) -> U256 {
+pub fn swap12(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP13 — swap the 1st and 14th stack items; returns new top.
 #[evm_opcode(SWAP13)]
-pub fn swap13(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256, n: U256) -> U256 {
+pub fn swap13(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+    n: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP14 — swap the 1st and 15th stack items; returns new top.
 #[evm_opcode(SWAP14)]
-pub fn swap14(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256, n: U256, o: U256) -> U256 {
+pub fn swap14(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+    n: U256,
+    o: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP15 — swap the 1st and 16th stack items; returns new top.
 #[evm_opcode(SWAP15)]
-pub fn swap15(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256, n: U256, o: U256, p: U256) -> U256 {
+pub fn swap15(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+    n: U256,
+    o: U256,
+    p: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP16 — swap the 1st and 17th stack items; returns new top.
 #[evm_opcode(SWAP16)]
-pub fn swap16(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256, k: U256, l: U256, m: U256, n: U256, o: U256, p: U256, q: U256) -> U256 {
+pub fn swap16(
+    a: U256,
+    b: U256,
+    c: U256,
+    d: U256,
+    e: U256,
+    f: U256,
+    g: U256,
+    h: U256,
+    i: U256,
+    j: U256,
+    k: U256,
+    l: U256,
+    m: U256,
+    n: U256,
+    o: U256,
+    p: U256,
+    q: U256,
+) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }

@@ -3,12 +3,11 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
+use std_evm_abi::{selector, solidity_type_name};
 use syn::{
     Error, FnArg, Ident, ImplItem, ImplItemFn, ItemFn, ItemImpl, Pat, ReturnType, Type,
-    parse_macro_input,
-    spanned::Spanned,
+    parse_macro_input, spanned::Spanned,
 };
-use tiny_keccak::{Hasher, Keccak};
 
 // ── #[contract] ───────────────────────────────────────────────────────────────
 
@@ -82,27 +81,19 @@ fn expand_contract(impl_block: ItemImpl) -> syn::Result<proc_macro2::TokenStream
 }
 
 /// Generate `#[no_mangle] pub extern "C" fn __evm_fn_XXXXXXXX() { … }`.
-fn external_shim(
-    method: &ImplItemFn,
-    self_ty: &Type,
-) -> syn::Result<proc_macro2::TokenStream> {
+fn external_shim(method: &ImplItemFn, self_ty: &Type) -> syn::Result<proc_macro2::TokenStream> {
     let name = &method.sig.ident;
 
     // Build the Ethereum function signature string, e.g. "transfer(uint256,bool)".
     let sig_str = eth_signature(method)?;
-    let selector = keccak_selector(&sig_str);
+    let sel = selector(&sig_str);
     let shim_name = Ident::new(
-        &format!("__evm_fn_{:08x}", u32::from_be_bytes(selector)),
+        &format!("__evm_fn_{:08x}", u32::from_be_bytes(sel)),
         name.span(),
     );
 
     // Collect arg names for the forwarding call.
-    let arg_names: Vec<_> = method
-        .sig
-        .inputs
-        .iter()
-        .filter_map(arg_ident)
-        .collect();
+    let arg_names: Vec<_> = method.sig.inputs.iter().filter_map(arg_ident).collect();
 
     // Collect arg types for the shim signature (drop `self`).
     let typed_args: Vec<_> = method
@@ -116,7 +107,7 @@ fn external_shim(
         .collect();
 
     let ret = &method.sig.output;
-    let selector_hex = format!("{:08x}", u32::from_be_bytes(selector));
+    let selector_hex = format!("{:08x}", u32::from_be_bytes(sel));
     let doc = format!(
         "ABI shim for `{self_ty}::{name}`.  \
          Selector `0x{selector_hex}` = `keccak256(\"{sig_str}\")[..4]`.",
@@ -275,59 +266,16 @@ fn eth_signature(method: &ImplItemFn) -> syn::Result<String> {
 }
 
 /// Map a Rust type path to its Solidity ABI type name.
+///
+/// The `syn` glue lives here; the canonical name table is
+/// [`std_evm_abi::solidity_type_name`], so the macro and runtime never drift.
 fn rust_ty_to_solidity(ty: &Type) -> String {
     match ty {
         Type::Path(tp) => {
             let last = tp.path.segments.last().map(|s| s.ident.to_string());
-            match last.as_deref() {
-                Some("u8")   => "uint8".into(),
-                Some("u16")  => "uint16".into(),
-                Some("u32")  => "uint32".into(),
-                Some("u64")  => "uint64".into(),
-                Some("u128") => "uint128".into(),
-                Some("i8")   => "int8".into(),
-                Some("i16")  => "int16".into(),
-                Some("i32")  => "int32".into(),
-                Some("i64")  => "int64".into(),
-                Some("i128") => "int128".into(),
-                Some("bool") => "bool".into(),
-                Some("U256") => "uint256".into(),
-                Some("Address") => "address".into(),
-                Some("Bytes32") => "bytes32".into(),
-                // Fallback: use bytes32 and let the developer override with
-                // a `#[solidity_type = "…"]` attribute if needed.
-                _ => "bytes32".into(),
-            }
+            solidity_type_name(last.as_deref().unwrap_or("")).into()
         }
         Type::Reference(r) => rust_ty_to_solidity(&r.elem),
         _ => "bytes32".into(),
-    }
-}
-
-/// Compute `keccak256(sig)[0..4]`.
-fn keccak_selector(sig: &str) -> [u8; 4] {
-    let mut output = [0u8; 32];
-    let mut hasher = Keccak::v256();
-    hasher.update(sig.as_bytes());
-    hasher.finalize(&mut output);
-    [output[0], output[1], output[2], output[3]]
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn transfer_selector() {
-        // ERC-20 transfer(address,uint256) = 0xa9059cbb
-        let sel = keccak_selector("transfer(address,uint256)");
-        assert_eq!(sel, [0xa9, 0x05, 0x9c, 0xbb]);
-    }
-
-    #[test]
-    fn balance_of_selector() {
-        // ERC-20 balanceOf(address) = 0x70a08231
-        let sel = keccak_selector("balanceOf(address)");
-        assert_eq!(sel, [0x70, 0xa0, 0x82, 0x31]);
     }
 }

@@ -1,6 +1,6 @@
 #![no_std]
 
-use std_evm::{contract, U256};
+use std_evm::{U256, contract};
 
 pub struct MyFirstContract;
 

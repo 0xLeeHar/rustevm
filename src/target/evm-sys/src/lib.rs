@@ -2,7 +2,6 @@
 #![allow(unused)]
 
 mod opcode;
-mod word;
 
 pub use opcode::*;
-pub use word::U256;
+pub use std_evm_abi::{U256, Word};

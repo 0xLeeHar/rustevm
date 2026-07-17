@@ -25,6 +25,7 @@ version = "0.1.0"
 dependencies = [
  "evm-isa",
  "evm-sys-macros",
+ "std-evm-abi",
 ]
 
 [[package]]

@@ -1,0 +1,48 @@
+// types.rs — canonical Rust-type-name → Solidity-ABI-type-name mapping.
+
+/// Map a Rust type identifier (the final path segment, e.g. `"u64"`, `"U256"`,
+/// `"Address"`) to its canonical Solidity ABI type name.
+///
+/// This is the single source of truth for the mapping. `std-evm-macros` keeps
+/// the `syn`-specific glue (extracting the identifier from a `syn::Type`) and
+/// calls this function, so the macro and any runtime reflection never drift.
+///
+/// The fallback is `bytes32`; annotate with a `#[solidity_type = "…"]` override
+/// when a precise mapping matters.
+pub fn solidity_type_name(rust_ident: &str) -> &'static str {
+    match rust_ident {
+        "u8" => "uint8",
+        "u16" => "uint16",
+        "u32" => "uint32",
+        "u64" => "uint64",
+        "u128" => "uint128",
+        "i8" => "int8",
+        "i16" => "int16",
+        "i32" => "int32",
+        "i64" => "int64",
+        "i128" => "int128",
+        "bool" => "bool",
+        "U256" => "uint256",
+        "Address" => "address",
+        "Bytes32" => "bytes32",
+        _ => "bytes32",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn known_mappings() {
+        assert_eq!(solidity_type_name("u64"), "uint64");
+        assert_eq!(solidity_type_name("U256"), "uint256");
+        assert_eq!(solidity_type_name("Address"), "address");
+        assert_eq!(solidity_type_name("i128"), "int128");
+    }
+
+    #[test]
+    fn fallback_is_bytes32() {
+        assert_eq!(solidity_type_name("SomethingElse"), "bytes32");
+    }
+}

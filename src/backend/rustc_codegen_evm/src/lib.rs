@@ -43,11 +43,11 @@
 #![allow(rustc::untranslatable_diagnostic)]
 
 // These are provided by the installed rustc via `rustc-dev`. They are NOT normal Cargo dependencies.
-extern crate rustc_driver;
 extern crate rustc_abi;
 extern crate rustc_ast;
 extern crate rustc_codegen_ssa;
 extern crate rustc_data_structures;
+extern crate rustc_driver;
 extern crate rustc_errors;
 extern crate rustc_hir;
 extern crate rustc_metadata;
@@ -65,4 +65,3 @@ pub fn __rustc_codegen_backend() -> Box<dyn rustc_codegen_ssa::traits::CodegenBa
     println!("Starting EVM codegen backend");
     Box::new(EvmCodegenBackend::new())
 }
-

@@ -1,14 +1,26 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! `std-evm-abi` — shared Ethereum ABI logic.
+//!
+//! The ABI-side counterpart to `evm-isa`: a single crate on the macro↔runtime
+//! boundary, depended on by both `std-evm-macros` (at compile time, to compute
+//! selectors and type names) and `std-evm` (at runtime, to encode/decode calldata
+//! and reverts). This keeps one implementation of the ABI rules and breaks the
+//! `std-evm` ↔ `std-evm-macros` dependency cycle.
+//!
+//! Opcode-free by construction — it depends only on `core`, `alloc`, and a keccak
+//! implementation, never on `evm-sys`.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#![no_std]
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+extern crate alloc;
+
+pub mod codec;
+pub mod revert;
+pub mod selector;
+pub mod types;
+mod word;
+
+pub use codec::{AbiDecode, AbiEncode, Component, DecodeError, encode_tuple, read_word};
+pub use revert::{ERROR_SELECTOR, PANIC_SELECTOR, encode_error, encode_panic};
+pub use selector::selector;
+pub use types::solidity_type_name;
+pub use word::{U256, Word};

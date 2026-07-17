@@ -9,13 +9,13 @@
 //!    collect the final [`CodegenResults`].
 //! 3. **`link`** — write the compiled bytecode to the output path.
 
-use std::any::Any;
-use rustc_codegen_ssa::{CompiledModule, CompiledModules, CrateInfo, ModuleKind};
 use rustc_codegen_ssa::traits::CodegenBackend;
+use rustc_codegen_ssa::{CompiledModule, CompiledModules, CrateInfo, ModuleKind};
 use rustc_middle::dep_graph::WorkProductMap;
 use rustc_middle::ty::TyCtxt;
-use rustc_session::config::{OutputFilenames, OutputType};
 use rustc_session::Session;
+use rustc_session::config::{OutputFilenames, OutputType};
+use std::any::Any;
 
 pub struct EvmCodegenBackend;
 
@@ -45,7 +45,11 @@ impl CodegenBackend for EvmCodegenBackend {
     }
 
     fn target_cpu(&self, sess: &Session) -> String {
-        sess.opts.cg.target_cpu.clone().unwrap_or_else(|| "generic".to_string())
+        sess.opts
+            .cg
+            .target_cpu
+            .clone()
+            .unwrap_or_else(|| "generic".to_string())
     }
 
     fn codegen_crate<'tcx>(&self, tcx: TyCtxt<'tcx>) -> Box<dyn Any> {
@@ -63,7 +67,13 @@ impl CodegenBackend for EvmCodegenBackend {
         Box::new(OngoingCodegen { modules })
     }
 
-    fn join_codegen(&self, ongoing_codegen: Box<dyn Any>, sess: &Session, outputs: &OutputFilenames, _crate_info: &CrateInfo) -> (CompiledModules, WorkProductMap) {
+    fn join_codegen(
+        &self,
+        ongoing_codegen: Box<dyn Any>,
+        sess: &Session,
+        outputs: &OutputFilenames,
+        _crate_info: &CrateInfo,
+    ) -> (CompiledModules, WorkProductMap) {
         let ongoing = *ongoing_codegen
             .downcast::<OngoingCodegen>()
             .expect("`join_codegen` was handed a box that `codegen_crate` did not produce");
@@ -74,7 +84,8 @@ impl CodegenBackend for EvmCodegenBackend {
             .map(|module| {
                 let path = outputs.temp_path_for_cgu(OutputType::Object, &module.name);
                 if let Err(err) = std::fs::write(&path, &module.bytecode) {
-                    sess.dcx().fatal(format!("failed to write {}: {err}", path.display()));
+                    sess.dcx()
+                        .fatal(format!("failed to write {}: {err}", path.display()));
                 }
 
                 CompiledModule {
@@ -91,6 +102,12 @@ impl CodegenBackend for EvmCodegenBackend {
             })
             .collect();
 
-        (CompiledModules { modules, allocator_module: None }, WorkProductMap::default())
+        (
+            CompiledModules {
+                modules,
+                allocator_module: None,
+            },
+            WorkProductMap::default(),
+        )
     }
 }
