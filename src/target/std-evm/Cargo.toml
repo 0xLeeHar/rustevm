@@ -4,6 +4,10 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 
+[features]
+default = ["fusaka"]
+fusaka  = ["evm-sys/fusaka"]
+
 [dependencies]
 evm-sys = { path = "../evm-sys" }
 std-evm-macros = { path = "../std-evm-macros" }

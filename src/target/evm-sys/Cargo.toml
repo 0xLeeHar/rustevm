@@ -5,8 +5,8 @@ edition.workspace = true
 authors.workspace = true
 
 [features]
-default = ["prague"]
-prague    = []
+default = ["fusaka"]
+fusaka  = []
 
 [dependencies]
 evm-sys-macros = { path = "../evm-sys-macros" }
