@@ -1,0 +1,13 @@
+[package]
+name = "evm-sys-macros"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+evm-isa = { path = "../../shared/evm-isa" }
+syn = "2.0.118"
+quote = "1.0.46"

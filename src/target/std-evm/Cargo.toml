@@ -1,8 +1,9 @@
 [package]
-name = "evm-codegen"
+name = "std-evm"
 version.workspace = true
 edition.workspace = true
-authors.workspace = true
 
 [dependencies]
+evm-sys = { path = "../evm-sys" }
+std-evm-macros = { path = "../std-evm-macros" }
 evm-isa = { path = "../../shared/evm-isa" }

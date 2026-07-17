@@ -1,9 +1,9 @@
 [package]
 name = "rustc_codegen_evm"
-authors = ["Lee Harman"]
-version = "0.1.0"
-edition = "2024"
 description = "A rustc codegen backend that emits EVM (Ethereum Virtual Machine) bytecode"
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
 
 # Must be a dylib so rustc can dlopen it at compile time.
 # The rustc internal src are linked into the compiler itself; they are NOT
@@ -20,3 +20,6 @@ crate-type = ["dylib"]
 # features work without listing them as explicit Cargo deps.
 [package.metadata.rust-analyzer]
 rustc_private = true
+
+[dependencies]
+evm-codegen = { path = "../evm-codegen" }

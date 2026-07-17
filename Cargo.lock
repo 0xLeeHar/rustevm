@@ -11,6 +11,9 @@ checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 [[package]]
 name = "evm-codegen"
 version = "0.1.0"
+dependencies = [
+ "evm-isa",
+]
 
 [[package]]
 name = "evm-isa"
@@ -27,6 +30,7 @@ dependencies = [
 name = "evm-sys-macros"
 version = "0.1.0"
 dependencies = [
+ "evm-isa",
  "quote",
  "syn",
 ]
@@ -59,11 +63,15 @@ dependencies = [
 [[package]]
 name = "rustc_codegen_evm"
 version = "0.1.0"
+dependencies = [
+ "evm-codegen",
+]
 
 [[package]]
 name = "std-evm"
 version = "0.1.0"
 dependencies = [
+ "evm-isa",
  "evm-sys",
  "std-evm-macros",
 ]

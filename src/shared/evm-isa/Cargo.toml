@@ -1,0 +1,6 @@
+[package]
+name = "evm-isa"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

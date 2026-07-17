@@ -1,18 +1,24 @@
 [workspace]
 resolver = "3"
+
 members = [
 # evm-sys
-    "src/std/evm-sys-macros",
-    "src/std/evm-sys",
-# std-evm
-    "src/std/std-evm",
-    "src/std/std-evm-macros",
-# shared
-    "src/std/std-evm-abi",
+    "src/target/evm-sys-macros",
+    "src/target/evm-sys",
+# target-evm
+    "src/target/std-evm",
+    "src/target/std-evm-macros",
+# SHARED
+    "src/target/std-evm-abi",
+    "src/shared/evm-isa",
 # BACKEND
-    "src/backend/evm-isa",
     "src/backend/evm-codegen",
     "src/backend/rustc_codegen_evm",
 # EXAMPLES
     "examples/my-first-contract",
 ]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["Lee Harman <lee.harman@outlook.com>"]

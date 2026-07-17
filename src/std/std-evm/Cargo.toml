@@ -1,8 +1,0 @@
-[package]
-name = "std-evm"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-evm-sys = { path = "../evm-sys" }
-std-evm-macros = { path = "../std-evm-macros" }
