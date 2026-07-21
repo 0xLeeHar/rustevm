@@ -6,5 +6,5 @@ pub struct MyFirstContract;
 
 #[contract]
 impl MyFirstContract {
-    fn init() {}
+    pub fn init() {}
 }

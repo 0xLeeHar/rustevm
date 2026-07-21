@@ -1,0 +1,28 @@
+{
+  "llvm-target": "evm-unknown-none",
+  "arch": "evm",
+  "data-layout": "E-m:e-p:32:32-i8:8-i16:16-i32:32-i64:64-i128:128-i256:256-n32-S256",
+  "target-pointer-width": 32,
+  "target-endian": "big",
+  "target-c-int-width": 32,
+
+  "os": "none",
+  "vendor": "unknown",
+  "env": "",
+
+  "panic-strategy": "abort",
+  "relocation-model": "static",
+
+  "max-atomic-width": 0,
+  "atomic-cas": false,
+  "has-thread-local": false,
+  "dynamic-linking": false,
+
+  "executables": true,
+  "linker-flavor": "ld.lld",
+  "linker": "rust-lld",
+  "eh-frame-header": false,
+  "requires-uwtable": false,
+  "default-codegen-units": 1,
+  "features": ""
+}

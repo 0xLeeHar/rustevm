@@ -62,6 +62,6 @@ mod backend;
 
 #[unsafe(no_mangle)]
 pub fn __rustc_codegen_backend() -> Box<dyn rustc_codegen_ssa::traits::CodegenBackend> {
-    println!("Starting EVM codegen backend");
+    eprintln!("Starting EVM codegen backend");
     Box::new(EvmCodegenBackend::new())
 }
