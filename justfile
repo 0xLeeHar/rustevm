@@ -13,6 +13,9 @@ test:
 check:
     cargo clippy --workspace --all-targets -- -D warnings
     cargo fmt --check
+    # evm-isa is read by both a nightly-only backend and a stable-only proc-macro
+    # crate; guard against a nightly-only feature creeping into its stable half.
+    cargo +stable check -p evm-isa
 
 # Cargo fmt globally
 fmt:
