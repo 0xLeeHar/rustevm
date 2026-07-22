@@ -26,7 +26,7 @@ fmt:
 build: build-backend build-std
 
 # Build the backend codegen
-build-backend:
+build-backend: build-shared
     cargo +nightly build -p rustc_codegen_evm
 
 # Compile a contract with the EVM backend instead of LLVM
@@ -38,8 +38,14 @@ build-contract crate="my-first-contract": build-backend
             --target {{target_json}}
 
 # Build the src/target/ crates on the host with stable rustc (no backend, no custom target spec).
-build-std:
+build-std: build-shared
     cargo build -p evm-sys -p evm-sys-macros -p std-evm -p std-evm-macros -p std-evm-abi
+
+# Build the shared evm-isa crate on both nightly and stable toolchains
+build-shared:
+    cargo +stable build -p evm-isa
+    cargo +nightly build -p evm-isa
+
 
 # ---------------------------------------------------------------
 # debugging
