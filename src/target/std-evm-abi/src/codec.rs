@@ -300,10 +300,7 @@ mod tests {
     fn round_trip() {
         let enc = sample();
         assert_eq!(U256::decode(&enc, 0x00).unwrap(), U256::from_u64(0x11));
-        assert_eq!(
-            Vec::<u8>::decode(&enc, 0x20).unwrap(),
-            alloc::vec![0xAA, 0xBB]
-        );
+        assert_eq!(Vec::<u8>::decode(&enc, 0x20).unwrap(), alloc::vec![0xAA, 0xBB]);
         assert_eq!(bool::decode(&enc, 0x40).unwrap(), true);
     }
 

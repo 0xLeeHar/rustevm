@@ -22,10 +22,7 @@ mod tests {
     #[test]
     fn transfer_selector() {
         // ERC-20 transfer(address,uint256) = 0xa9059cbb
-        assert_eq!(
-            selector("transfer(address,uint256)"),
-            [0xa9, 0x05, 0x9c, 0xbb]
-        );
+        assert_eq!(selector("transfer(address,uint256)"), [0xa9, 0x05, 0x9c, 0xbb]);
     }
 
     #[test]

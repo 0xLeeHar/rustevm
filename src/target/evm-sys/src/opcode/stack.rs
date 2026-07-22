@@ -253,34 +253,13 @@ pub fn dup8(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U2
 
 /// DUP9 — duplicate the 9th stack item.
 #[evm_opcode(DUP9)]
-pub fn dup9(
-    a: U256,
-    b: U256,
-    c: U256,
-    d: U256,
-    e: U256,
-    f: U256,
-    g: U256,
-    h: U256,
-    i: U256,
-) -> U256 {
+pub fn dup9(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DUP10 — duplicate the 10th stack item.
 #[evm_opcode(DUP10)]
-pub fn dup10(
-    a: U256,
-    b: U256,
-    c: U256,
-    d: U256,
-    e: U256,
-    f: U256,
-    g: U256,
-    h: U256,
-    i: U256,
-    j: U256,
-) -> U256 {
+pub fn dup10(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
@@ -453,34 +432,13 @@ pub fn swap7(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U
 
 /// SWAP8 — swap the 1st and 9th stack items; returns new top.
 #[evm_opcode(SWAP8)]
-pub fn swap8(
-    a: U256,
-    b: U256,
-    c: U256,
-    d: U256,
-    e: U256,
-    f: U256,
-    g: U256,
-    h: U256,
-    i: U256,
-) -> U256 {
+pub fn swap8(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// SWAP9 — swap the 1st and 10th stack items; returns new top.
 #[evm_opcode(SWAP9)]
-pub fn swap9(
-    a: U256,
-    b: U256,
-    c: U256,
-    d: U256,
-    e: U256,
-    f: U256,
-    g: U256,
-    h: U256,
-    i: U256,
-    j: U256,
-) -> U256 {
+pub fn swap9(a: U256, b: U256, c: U256, d: U256, e: U256, f: U256, g: U256, h: U256, i: U256, j: U256) -> U256 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 

@@ -23,11 +23,7 @@ fn no_duplicate_bytes() {
 fn no_duplicate_mnemonics() {
     let mut seen = HashSet::new();
     for spec in OPCODES {
-        assert!(
-            seen.insert(spec.mnemonic),
-            "duplicate mnemonic {}",
-            spec.mnemonic
-        );
+        assert!(seen.insert(spec.mnemonic), "duplicate mnemonic {}", spec.mnemonic);
     }
 }
 
@@ -68,19 +64,10 @@ fn push_dup_swap_byte_ranges_are_contiguous() {
 
 #[test]
 fn op_form_recovers_push_dup_swap_families() {
-    assert_eq!(
-        crate::op_form(by_mnemonic("PUSH0").unwrap()),
-        OpForm::Push(0)
-    );
-    assert_eq!(
-        crate::op_form(by_mnemonic("PUSH17").unwrap()),
-        OpForm::Push(17)
-    );
+    assert_eq!(crate::op_form(by_mnemonic("PUSH0").unwrap()), OpForm::Push(0));
+    assert_eq!(crate::op_form(by_mnemonic("PUSH17").unwrap()), OpForm::Push(17));
     assert_eq!(crate::op_form(by_mnemonic("DUP9").unwrap()), OpForm::Dup(9));
-    assert_eq!(
-        crate::op_form(by_mnemonic("SWAP16").unwrap()),
-        OpForm::Swap(16)
-    );
+    assert_eq!(crate::op_form(by_mnemonic("SWAP16").unwrap()), OpForm::Swap(16));
     assert_eq!(crate::op_form(by_mnemonic("ADD").unwrap()), OpForm::Simple);
 }
 

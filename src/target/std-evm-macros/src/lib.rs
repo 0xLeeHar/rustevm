@@ -5,8 +5,8 @@ use proc_macro2::Span;
 use quote::quote;
 use std_evm_abi::{selector, solidity_type_name};
 use syn::{
-    Error, FnArg, Ident, ImplItem, ImplItemFn, ItemFn, ItemImpl, Pat, ReturnType, Type,
-    parse_macro_input, spanned::Spanned,
+    Error, FnArg, Ident, ImplItem, ImplItemFn, ItemFn, ItemImpl, Pat, ReturnType, Type, parse_macro_input,
+    spanned::Spanned,
 };
 
 // ── #[contract] ───────────────────────────────────────────────────────────────
@@ -87,10 +87,7 @@ fn external_shim(method: &ImplItemFn, self_ty: &Type) -> syn::Result<proc_macro2
     // Build the Ethereum function signature string, e.g. "transfer(uint256,bool)".
     let sig_str = eth_signature(method)?;
     let sel = selector(&sig_str);
-    let shim_name = Ident::new(
-        &format!("__evm_fn_{:08x}", u32::from_be_bytes(sel)),
-        name.span(),
-    );
+    let shim_name = Ident::new(&format!("__evm_fn_{:08x}", u32::from_be_bytes(sel)), name.span());
 
     // Collect arg names for the forwarding call.
     let arg_names: Vec<_> = method.sig.inputs.iter().filter_map(arg_ident).collect();

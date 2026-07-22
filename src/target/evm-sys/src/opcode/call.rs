@@ -20,27 +20,13 @@ pub unsafe fn call(
 
 /// STATICCALL — like CALL but no value, disallows state changes.
 #[evm_opcode(STATICCALL)]
-pub unsafe fn staticcall(
-    gas: U256,
-    addr: U256,
-    in_offset: u32,
-    in_len: u32,
-    out_offset: u32,
-    out_len: u32,
-) -> u32 {
+pub unsafe fn staticcall(gas: U256, addr: U256, in_offset: u32, in_len: u32, out_offset: u32, out_len: u32) -> u32 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 
 /// DELEGATECALL — runs target code in caller's context.
 #[evm_opcode(DELEGATECALL)]
-pub unsafe fn delegatecall(
-    gas: U256,
-    addr: U256,
-    in_offset: u32,
-    in_len: u32,
-    out_offset: u32,
-    out_len: u32,
-) -> u32 {
+pub unsafe fn delegatecall(gas: U256, addr: U256, in_offset: u32, in_len: u32, out_offset: u32, out_len: u32) -> u32 {
     unsafe { core::hint::unreachable_unchecked() }
 }
 

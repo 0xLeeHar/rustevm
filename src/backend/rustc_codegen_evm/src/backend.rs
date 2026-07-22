@@ -45,11 +45,7 @@ impl CodegenBackend for EvmCodegenBackend {
     }
 
     fn target_cpu(&self, sess: &Session) -> String {
-        sess.opts
-            .cg
-            .target_cpu
-            .clone()
-            .unwrap_or_else(|| "generic".to_string())
+        sess.opts.cg.target_cpu.clone().unwrap_or_else(|| "generic".to_string())
     }
 
     fn codegen_crate<'tcx>(&self, tcx: TyCtxt<'tcx>) -> Box<dyn Any> {
@@ -84,8 +80,7 @@ impl CodegenBackend for EvmCodegenBackend {
             .map(|module| {
                 let path = outputs.temp_path_for_cgu(OutputType::Object, &module.name);
                 if let Err(err) = std::fs::write(&path, &module.bytecode) {
-                    sess.dcx()
-                        .fatal(format!("failed to write {}: {err}", path.display()));
+                    sess.dcx().fatal(format!("failed to write {}: {err}", path.display()));
                 }
 
                 CompiledModule {
