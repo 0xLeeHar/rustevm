@@ -1,5 +1,7 @@
 // types.rs — canonical Rust-type-name → Solidity-ABI-type-name mapping.
 
+use alloc::string::String;
+
 /// Map a Rust type identifier (the final path segment, e.g. `"u64"`, `"U256"`,
 /// `"Address"`) to its canonical Solidity ABI type name.
 ///
@@ -29,6 +31,31 @@ pub fn solidity_type_name(rust_ident: &str) -> &'static str {
     }
 }
 
+/// Convert a Rust `snake_case` identifier to Solidity's `camelCase` naming
+/// convention.
+///
+/// A method named `balance_of` hashes to a selector no Solidity caller will
+/// ever compute unless it's converted to `balanceOf` first — see
+/// `design/std-evm-macros-spec.md`'s "naming problem" section. Consecutive or
+/// leading/trailing underscores are collapsed away rather than producing
+/// empty segments; an already-camelCase input (no underscores) passes
+/// through unchanged.
+pub fn camel_case(ident: &str) -> String {
+    let mut out = String::with_capacity(ident.len());
+    for (i, segment) in ident.split('_').filter(|s| !s.is_empty()).enumerate() {
+        if i == 0 {
+            out.push_str(segment);
+        } else {
+            let mut chars = segment.chars();
+            if let Some(first) = chars.next() {
+                out.extend(first.to_uppercase());
+                out.push_str(chars.as_str());
+            }
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -44,5 +71,23 @@ mod tests {
     #[test]
     fn fallback_is_bytes32() {
         assert_eq!(solidity_type_name("SomethingElse"), "bytes32");
+    }
+
+    #[test]
+    fn camel_case_converts_snake_case() {
+        assert_eq!(camel_case("balance_of"), "balanceOf");
+        assert_eq!(camel_case("transfer_from"), "transferFrom");
+    }
+
+    #[test]
+    fn camel_case_passes_through_no_underscores() {
+        assert_eq!(camel_case("transfer"), "transfer");
+    }
+
+    #[test]
+    fn camel_case_collapses_stray_underscores() {
+        assert_eq!(camel_case("_leading"), "leading");
+        assert_eq!(camel_case("trailing_"), "trailing");
+        assert_eq!(camel_case("double__underscore"), "doubleUnderscore");
     }
 }

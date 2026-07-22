@@ -87,6 +87,65 @@ pub trait AbiDecode: Sized {
     fn decode(input: &[u8], offset: usize) -> Result<Self, DecodeError>;
 }
 
+/// Decode a flat, positional argument list from calldata (selector already
+/// stripped).
+///
+/// Distinct from [`AbiDecode`]: a single value can nest (a struct field's
+/// value is itself one component), but a top-level argument list is always
+/// flat — each argument occupies its own head slot at `32 * index`, with no
+/// wrapping offset pointer for the list itself. Implemented for tuples of
+/// arity 0..=8 below; `std-evm`'s `Method::Args` associated type is always
+/// one of these.
+pub trait AbiDecodeArgs: Sized {
+    fn decode_args(calldata: &[u8]) -> Result<Self, DecodeError>;
+}
+
+/// Encode a method's return value into the flat, top-level output buffer.
+///
+/// Mirrors [`AbiDecodeArgs`]'s reasoning on the output side: a single return
+/// value is ABI-encoded as a one-element tuple, not wrapped as a nested
+/// component. `()` (no return value) encodes to an empty buffer.
+pub trait AbiEncodeOutput {
+    fn encode_output(&self) -> Vec<u8>;
+}
+
+impl AbiDecodeArgs for () {
+    fn decode_args(_calldata: &[u8]) -> Result<Self, DecodeError> {
+        Ok(())
+    }
+}
+
+impl AbiEncodeOutput for () {
+    fn encode_output(&self) -> Vec<u8> {
+        Vec::new()
+    }
+}
+
+impl<T: AbiEncode> AbiEncodeOutput for T {
+    fn encode_output(&self) -> Vec<u8> {
+        encode_tuple(&[self.to_component()])
+    }
+}
+
+macro_rules! impl_decode_args {
+    ($($t:ident : $idx:literal),+) => {
+        impl<$($t: AbiDecode),+> AbiDecodeArgs for ($($t,)+) {
+            fn decode_args(calldata: &[u8]) -> Result<Self, DecodeError> {
+                Ok(($($t::decode(calldata, 32 * $idx)?,)+))
+            }
+        }
+    };
+}
+
+impl_decode_args!(A: 0);
+impl_decode_args!(A: 0, B: 1);
+impl_decode_args!(A: 0, B: 1, C: 2);
+impl_decode_args!(A: 0, B: 1, C: 2, D: 3);
+impl_decode_args!(A: 0, B: 1, C: 2, D: 3, E: 4);
+impl_decode_args!(A: 0, B: 1, C: 2, D: 3, E: 4, F: 5);
+impl_decode_args!(A: 0, B: 1, C: 2, D: 3, E: 4, F: 5, G: 6);
+impl_decode_args!(A: 0, B: 1, C: 2, D: 3, E: 4, F: 5, G: 6, H: 7);
+
 // ── word helpers ────────────────────────────────────────────────────────────
 
 /// Big-endian ABI word from an unsigned value (left-padded with zeros).
@@ -325,5 +384,38 @@ mod tests {
     fn string_round_trip() {
         let enc = encode_tuple(&["hello".to_component()]);
         assert_eq!(String::decode(&enc, 0).unwrap(), "hello");
+    }
+
+    #[test]
+    fn decode_args_arity_zero() {
+        assert_eq!(<()>::decode_args(&[]).unwrap(), ());
+    }
+
+    #[test]
+    fn decode_args_arity_two_reads_sequential_head_slots() {
+        let enc = encode_tuple(&[U256::from_u64(0x11).to_component(), true.to_component()]);
+        let (a, b) = <(U256, bool)>::decode_args(&enc).unwrap();
+        assert_eq!(a, U256::from_u64(0x11));
+        assert!(b);
+    }
+
+    #[test]
+    fn decode_args_arity_three_matches_manual_offsets() {
+        let enc = sample();
+        let (a, b, c) = <(U256, Vec<u8>, bool)>::decode_args(&enc).unwrap();
+        assert_eq!(a, U256::from_u64(0x11));
+        assert_eq!(b, alloc::vec![0xAA, 0xBB]);
+        assert!(c);
+    }
+
+    #[test]
+    fn encode_output_unit_is_empty() {
+        assert_eq!(().encode_output(), Vec::<u8>::new());
+    }
+
+    #[test]
+    fn encode_output_single_value_round_trips() {
+        let out = U256::from_u64(7).encode_output();
+        assert_eq!(U256::decode(&out, 0).unwrap(), U256::from_u64(7));
     }
 }

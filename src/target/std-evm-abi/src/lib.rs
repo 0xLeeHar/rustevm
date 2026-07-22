@@ -19,8 +19,10 @@ pub mod selector;
 pub mod types;
 mod word;
 
-pub use codec::{AbiDecode, AbiEncode, Component, DecodeError, encode_tuple, read_word};
+pub use codec::{
+    AbiDecode, AbiDecodeArgs, AbiEncode, AbiEncodeOutput, Component, DecodeError, encode_tuple, read_word,
+};
 pub use revert::{ERROR_SELECTOR, PANIC_SELECTOR, encode_error, encode_panic};
 pub use selector::selector;
-pub use types::solidity_type_name;
+pub use types::{camel_case, solidity_type_name};
 pub use word::{U256, Word};
