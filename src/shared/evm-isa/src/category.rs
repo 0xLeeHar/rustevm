@@ -2,7 +2,7 @@
 /// own opcode groupings (Environmental Information, Block Information,
 /// System operations, ...) mapped onto a fixed, small set of buckets that
 /// `evm-opt`'s state analysis and the scheduler's special-casing key off of.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OpCategory {
     Arithmetic,
     Comparison,

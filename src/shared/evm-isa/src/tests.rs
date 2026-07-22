@@ -107,13 +107,13 @@ fn derived_predicates() {
     let timestamp = by_mnemonic("TIMESTAMP").unwrap();
     let dup1 = by_mnemonic("DUP1").unwrap();
 
-    assert!(sload.reads_state());
-    assert!(!sload.writes_state());
-    assert!(tload.reads_state());
+    assert!(sload.reads_storage());
+    assert!(!sload.writes_storage());
+    assert!(tload.reads_storage());
 
-    assert!(sstore.writes_state());
-    assert!(!sstore.reads_state());
-    assert!(tstore.writes_state());
+    assert!(sstore.writes_storage());
+    assert!(!sstore.reads_storage());
+    assert!(tstore.writes_storage());
 
     assert!(add.is_pure());
     assert!(!timestamp.is_pure());

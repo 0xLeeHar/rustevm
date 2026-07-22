@@ -7,7 +7,7 @@ use crate::gas::GasClass;
 /// Every operand the opcode pops is a parameter in `stack_in`, including
 /// memory offsets and lengths (`KECCAK256` pops `(offset, len)` →
 /// `stack_in: 2`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct OpSpec {
     pub mnemonic: &'static str,
     pub byte: u8,
@@ -30,15 +30,15 @@ impl OpSpec {
         )
     }
 
-    /// `SLOAD`/`TLOAD` read state: same category as their write counterparts,
-    /// distinguished here by producing a stack output.
-    pub const fn reads_state(&self) -> bool {
+    /// `SLOAD`/`TLOAD` read storage: same category as their write
+    /// counterparts, distinguished here by producing a stack output.
+    pub const fn reads_storage(&self) -> bool {
         matches!(self.category, OpCategory::Storage) && self.stack_out != 0
     }
 
-    /// `SSTORE`/`TSTORE` write state: same category as their read
+    /// `SSTORE`/`TSTORE` write storage: same category as their read
     /// counterparts, distinguished here by producing no stack output.
-    pub const fn writes_state(&self) -> bool {
+    pub const fn writes_storage(&self) -> bool {
         matches!(self.category, OpCategory::Storage) && self.stack_out == 0
     }
 

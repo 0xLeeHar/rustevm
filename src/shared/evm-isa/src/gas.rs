@@ -5,7 +5,7 @@
 /// warm/cold bookkeeping across a whole call frame) is `evm-opt`'s job; this
 /// table only needs to expose enough to prioritize optimizations (e.g.
 /// eliminating an `SSTORE` saves far more than eliding an `ADD`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GasClass {
     /// The canonical EVM zero-gas tier (`STOP`, `RETURN`, `REVERT`).
     Zero,

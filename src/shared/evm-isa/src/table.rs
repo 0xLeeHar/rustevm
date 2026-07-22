@@ -191,19 +191,7 @@ pub const OPCODES: &[OpSpec] = &[
         Context,
         Frontier,
     ),
-    op(
-        "EXTCODECOPY",
-        0x3c,
-        4,
-        0,
-        false,
-        ColdWarm {
-            cold: 2600,
-            warm: 100,
-        },
-        Context,
-        Frontier,
-    ),
+    op("EXTCODECOPY", 0x3c, 4, 0, false, Complex, Context, Frontier),
     op(
         "RETURNDATASIZE",
         0x3d,

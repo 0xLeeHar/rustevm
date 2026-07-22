@@ -8,7 +8,7 @@ use crate::spec::OpSpec;
 /// This gets no binding in `evm-sys` — the compiler owns stack manipulation,
 /// and a user calling `dup3()` directly would corrupt the scheduler's
 /// invariants.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OpForm {
     Simple,
     /// Immediate width in bytes, `0..=32` (`Push(0)` is `PUSH0`).
