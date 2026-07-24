@@ -14,7 +14,6 @@ impl MyFirstContract {
     #[payable]
     pub fn deposit() {}
 
-    #[selector("balanceOf(address)")]
     pub fn balance_of(who: Address) -> U256 {
         let _ = who;
         U256::ZERO
