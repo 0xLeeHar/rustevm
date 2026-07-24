@@ -24,5 +24,8 @@ pub use evm_sys::U256;
 pub use guard::guard_not_payable;
 pub use method::Method;
 pub use std_evm_abi::{AbiDecodeArgs, encode_error};
-pub use std_evm_macros::{constructor, contract, fallback, payable, receive, selector};
-pub use storage::Storage;
+pub use std_evm_macros::{constructor, contract, fallback, payable, receive, selector, storage};
+pub use storage::{
+    Mapping, MappingMut, MappingRef, Slot, Storage, StorageKey, StorageLayout, StorageValue, Transient, TransientSlot,
+    TransientValue, derived_slot, with_storage, with_storage_mut,
+};

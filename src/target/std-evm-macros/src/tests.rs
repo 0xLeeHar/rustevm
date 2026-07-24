@@ -4,13 +4,19 @@
 //! is a plain function over `proc_macro2::TokenStream`/`syn` types, so it's
 //! testable without the `proc_macro`/`trybuild` machinery.
 
-use syn::ItemImpl;
+use syn::{ItemImpl, ItemStruct};
 
 use crate::contract::expand_contract;
+use crate::layout::expand_storage;
 
 fn expand(src: &str) -> syn::Result<String> {
     let impl_block: ItemImpl = syn::parse_str(src)?;
     expand_contract(impl_block).map(|ts| ts.to_string())
+}
+
+fn expand_layout(src: &str) -> syn::Result<String> {
+    let item_struct: ItemStruct = syn::parse_str(src)?;
+    expand_storage(item_struct).map(|ts| ts.to_string())
 }
 
 #[test]
@@ -212,11 +218,130 @@ fn storage_param_excluded_from_args() {
     let out = expand(
         r#"
         impl Token {
-            pub fn balance_of(s: &Storage, who: Address) -> U256 { U256::ZERO }
+            pub fn balance_of(s: &Storage<TokenStorage>, who: Address) -> U256 { U256::ZERO }
         }
         "#,
     )
     .unwrap();
     // Args tuple should only contain the Address type, not Storage.
     assert!(out.contains("type Args = (Address ,) ;"));
+}
+
+#[test]
+fn bare_storage_without_layout_type_errors() {
+    let err = expand(
+        r#"
+        impl Token {
+            pub fn balance_of(s: &Storage, who: Address) -> U256 { U256::ZERO }
+        }
+        "#,
+    )
+    .unwrap_err();
+    assert!(err.to_string().contains("layout type argument"));
+}
+
+#[test]
+fn view_method_wraps_call_in_with_storage() {
+    let out = expand(
+        r#"
+        impl Token {
+            pub fn balance_of(s: &Storage<TokenStorage>, who: Address) -> U256 { U256::ZERO }
+        }
+        "#,
+    )
+    .unwrap();
+    assert!(out.contains(":: std_evm :: with_storage :: < TokenStorage , _ >"));
+    assert!(!out.contains("with_storage_mut"));
+}
+
+#[test]
+fn mutating_method_wraps_call_in_with_storage_mut() {
+    let out = expand(
+        r#"
+        impl Token {
+            pub fn transfer(s: &mut Storage<TokenStorage>, to: Address, amt: U256) {}
+        }
+        "#,
+    )
+    .unwrap();
+    assert!(out.contains(":: std_evm :: with_storage_mut :: < TokenStorage , _ >"));
+}
+
+#[test]
+fn constructor_wraps_call_in_with_storage_mut() {
+    let out = expand(
+        r#"
+        impl Token {
+            #[constructor]
+            pub fn init(s: &mut Storage<TokenStorage>, supply: U256) {}
+        }
+        "#,
+    )
+    .unwrap();
+    assert!(out.contains(":: std_evm :: with_storage_mut :: < TokenStorage , _ >"));
+}
+
+#[test]
+fn no_storage_param_means_no_wrapping() {
+    let out = expand(
+        r#"
+        impl Counter {
+            pub fn value() -> u64 { 0 }
+        }
+        "#,
+    )
+    .unwrap();
+    assert!(!out.contains("with_storage"));
+}
+
+#[test]
+fn storage_layout_generates_marker_and_access_impl() {
+    let out = expand_layout(
+        r#"
+        struct TokenStorage {
+            total_supply: U256,
+            balances: Mapping<Address, U256>,
+        }
+        "#,
+    )
+    .unwrap();
+
+    assert!(
+        out.contains("struct TokenStorage ;"),
+        "fields must be consumed, not kept: {out}"
+    );
+    assert!(out.contains("impl :: std_evm :: StorageLayout for TokenStorage"));
+    assert!(out.contains("trait TokenStorageAccess"));
+    assert!(out.contains("impl TokenStorageAccess for :: std_evm :: Storage < TokenStorage >"));
+
+    // Plain field: getter + setter over a Slot.
+    assert!(out.contains("fn total_supply (& self) -> U256"));
+    assert!(out.contains("fn set_total_supply (& mut self , v : U256)"));
+    assert!(out.contains(":: std_evm :: Slot :: < U256 > :: new (0u64)"));
+
+    // Mapping field: MappingRef/MappingMut accessors, no hashing at this level.
+    assert!(out.contains("fn balances (& self) -> :: std_evm :: MappingRef < '_ , Address , U256 >"));
+    assert!(out.contains("fn balances_mut (& mut self) -> :: std_evm :: MappingMut < '_ , Address , U256 >"));
+}
+
+#[test]
+fn nested_mapping_generates_flattened_accessor() {
+    let out = expand_layout(
+        r#"
+        struct TokenStorage {
+            allowances: Mapping<Address, Mapping<Address, U256>>,
+        }
+        "#,
+    )
+    .unwrap();
+
+    // Flattened: takes the outer key directly, returns a handle over the inner mapping.
+    assert!(out.contains("fn allowances (& self , key : Address) -> :: std_evm :: MappingRef < '_ , Address , U256 >"));
+    assert!(out.contains("derived_slot"));
+}
+
+#[test]
+fn storage_layout_rejects_tuple_struct() {
+    let err = expand_layout("struct TokenStorage(U256);").unwrap_err();
+    assert!(err.to_string().contains("named fields"));
 }

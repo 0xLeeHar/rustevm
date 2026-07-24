@@ -4,7 +4,7 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use std_evm_abi::selector;
-use syn::{FnArg, ImplItem, ImplItemFn, ItemImpl, ReturnType, Type, spanned::Spanned};
+use syn::{FnArg, GenericArgument, ImplItem, ImplItemFn, ItemImpl, PathArguments, ReturnType, Type, spanned::Spanned};
 
 use crate::attrs::{check_at_most_one, has_attr, strip_inert_attrs};
 use crate::signature::{eth_signature, is_storage_param};
@@ -113,10 +113,14 @@ fn method_marker_ident(name: &Ident) -> Ident {
     Ident::new(&format!("__Method_{name}"), name.span())
 }
 
-/// Split a method's params into an optional leading `&Storage`/`&mut Storage`
-/// and the remaining ABI-visible parameters.
-fn split_storage_param(method: &ImplItemFn) -> syn::Result<(Option<bool>, Vec<&Type>)> {
-    let mut storage_kind = None;
+/// `(is_mut, layout_ty)` for a method's leading `&Storage<T>`/`&mut
+/// Storage<T>` parameter, if it has one.
+type StorageInfo = Option<(bool, Type)>;
+
+/// Split a method's params into an optional leading `&Storage<T>`/`&mut
+/// Storage<T>` and the remaining ABI-visible parameters.
+fn split_storage_param(method: &ImplItemFn) -> syn::Result<(StorageInfo, Vec<&Type>)> {
+    let mut storage_info = None;
     let mut abi_types = Vec::new();
 
     for arg in &method.sig.inputs {
@@ -125,19 +129,20 @@ fn split_storage_param(method: &ImplItemFn) -> syn::Result<(Option<bool>, Vec<&T
                 return Err(syn::Error::new_spanned(
                     r,
                     "#[contract] methods must be free functions on the type (no `self`) — \
-                     use `&Storage`/`&mut Storage` instead",
+                     use `&Storage<T>`/`&mut Storage<T>` instead",
                 ));
             }
             FnArg::Typed(pt) => {
                 if is_storage_param(&pt.ty) {
-                    if storage_kind.is_some() || !abi_types.is_empty() {
+                    if storage_info.is_some() || !abi_types.is_empty() {
                         return Err(syn::Error::new_spanned(
                             &pt.ty,
-                            "`&Storage`/`&mut Storage` must be the first parameter",
+                            "`&Storage<T>`/`&mut Storage<T>` must be the first parameter",
                         ));
                     }
                     let is_mut = matches!(&*pt.ty, Type::Reference(r) if r.mutability.is_some());
-                    storage_kind = Some(is_mut);
+                    let layout_ty = storage_layout_ty(&pt.ty)?;
+                    storage_info = Some((is_mut, layout_ty));
                 } else {
                     abi_types.push(pt.ty.as_ref());
                 }
@@ -145,7 +150,47 @@ fn split_storage_param(method: &ImplItemFn) -> syn::Result<(Option<bool>, Vec<&T
         }
     }
 
-    Ok((storage_kind, abi_types))
+    Ok((storage_info, abi_types))
+}
+
+/// Extract `T` out of a `&Storage<T>`/`&mut Storage<T>` parameter type —
+/// the macro needs it to name the concrete layout in the
+/// `with_storage`/`with_storage_mut` turbofish it generates.
+fn storage_layout_ty(ty: &Type) -> syn::Result<Type> {
+    let inner = match ty {
+        Type::Reference(r) => r.elem.as_ref(),
+        other => other,
+    };
+    let Type::Path(tp) = inner else {
+        return Err(syn::Error::new_spanned(ty, "expected `&Storage<T>`/`&mut Storage<T>`"));
+    };
+    let Some(seg) = tp.path.segments.last() else {
+        return Err(syn::Error::new_spanned(ty, "expected `&Storage<T>`/`&mut Storage<T>`"));
+    };
+    let PathArguments::AngleBracketed(args) = &seg.arguments else {
+        return Err(syn::Error::new_spanned(
+            ty,
+            "`Storage` needs a layout type argument, e.g. `&Storage<TokenStorage>` — bare `&Storage` \
+             isn't valid",
+        ));
+    };
+    let mut type_args = args.args.iter().filter_map(|a| match a {
+        GenericArgument::Type(t) => Some(t.clone()),
+        _ => None,
+    });
+    let Some(layout_ty) = type_args.next() else {
+        return Err(syn::Error::new_spanned(
+            ty,
+            "`Storage` needs exactly one layout type argument",
+        ));
+    };
+    if type_args.next().is_some() {
+        return Err(syn::Error::new_spanned(
+            ty,
+            "`Storage` takes exactly one layout type argument",
+        ));
+    }
+    Ok(layout_ty)
 }
 
 fn arg_pat_idents(n: usize) -> Vec<Ident> {
@@ -154,17 +199,21 @@ fn arg_pat_idents(n: usize) -> Vec<Ident> {
         .collect()
 }
 
-fn storage_binding(storage_kind: Option<bool>) -> (TokenStream, TokenStream) {
-    match storage_kind {
-        Some(true) => (
-            quote! { let mut storage = ::std_evm::Storage::new(); },
-            quote! { &mut storage, },
-        ),
-        Some(false) => (
-            quote! { let storage = ::std_evm::Storage::new(); },
-            quote! { &storage, },
-        ),
-        None => (quote! {}, quote! {}),
+/// Wrap `inner` (a call expression/statement referring to a `storage`
+/// binding) in `with_storage`/`with_storage_mut`, or leave it untouched if
+/// the method takes no storage parameter. `std-evm`'s helpers construct the
+/// handle — the generated code here never calls `Storage::new()` itself, so
+/// its constructor can stay genuinely crate-private (see
+/// `design/std-evm-storage-spec.md` §1).
+fn wrap_with_storage(storage_info: &StorageInfo, inner: TokenStream) -> TokenStream {
+    match storage_info {
+        Some((true, layout_ty)) => quote! {
+            ::std_evm::with_storage_mut::<#layout_ty, _>(|storage| { #inner })
+        },
+        Some((false, layout_ty)) => quote! {
+            ::std_evm::with_storage::<#layout_ty, _>(|storage| { #inner })
+        },
+        None => inner,
     }
 }
 
@@ -178,7 +227,7 @@ fn expand_method(
     is_payable: bool,
 ) -> syn::Result<(TokenStream, TokenStream)> {
     let name = &method.sig.ident;
-    let (storage_kind, abi_types) = split_storage_param(method)?;
+    let (storage_info, abi_types) = split_storage_param(method)?;
 
     let arg_pats = arg_pat_idents(abi_types.len());
     let args_ty = quote! { ( #(#abi_types,)* ) };
@@ -187,7 +236,14 @@ fn expand_method(
         ReturnType::Type(_, ty) => quote! { #ty },
     };
 
-    let (storage_let, storage_arg) = storage_binding(storage_kind);
+    let storage_arg = if storage_info.is_some() {
+        quote! { storage, }
+    } else {
+        quote! {}
+    };
+    let inner_call = quote! { <#self_ty>::#name(#storage_arg #(#arg_pats),*) };
+    let call_body = wrap_with_storage(&storage_info, inner_call);
+
     let guard = if is_payable {
         quote! {}
     } else {
@@ -207,8 +263,7 @@ fn expand_method(
             fn call(args: Self::Args) -> Self::Output {
                 #guard
                 let ( #(#arg_pats,)* ) = args;
-                #storage_let
-                <#self_ty>::#name(#storage_arg #(#arg_pats),*)
+                #call_body
             }
         }
     };
@@ -232,11 +287,18 @@ fn expand_constructor(method: &ImplItemFn, self_ty: &Type) -> syn::Result<TokenS
     }
 
     let name = &method.sig.ident;
-    let (storage_kind, abi_types) = split_storage_param(method)?;
+    let (storage_info, abi_types) = split_storage_param(method)?;
 
     let arg_pats = arg_pat_idents(abi_types.len());
     let args_ty = quote! { ( #(#abi_types,)* ) };
-    let (storage_let, storage_arg) = storage_binding(storage_kind);
+
+    let storage_arg = if storage_info.is_some() {
+        quote! { storage, }
+    } else {
+        quote! {}
+    };
+    let inner_call = quote! { <#self_ty>::#name(#storage_arg #(#arg_pats),*); };
+    let call_body = wrap_with_storage(&storage_info, inner_call);
 
     Ok(quote! {
         impl ::std_evm::Contract for #self_ty {
@@ -244,8 +306,7 @@ fn expand_constructor(method: &ImplItemFn, self_ty: &Type) -> syn::Result<TokenS
                 let ( #(#arg_pats,)* ) =
                     <#args_ty as ::std_evm::AbiDecodeArgs>::decode_args(calldata)
                         .unwrap_or_else(|_| panic!("invalid constructor calldata"));
-                #storage_let
-                <#self_ty>::#name(#storage_arg #(#arg_pats),*);
+                #call_body
             }
         }
     })
