@@ -7,7 +7,7 @@
 use syn::{ItemImpl, ItemStruct};
 
 use crate::contract::expand_contract;
-use crate::layout::expand_storage;
+use crate::layout::{expand_storage, expand_transient};
 
 fn expand(src: &str) -> syn::Result<String> {
     let impl_block: ItemImpl = syn::parse_str(src)?;
@@ -17,6 +17,11 @@ fn expand(src: &str) -> syn::Result<String> {
 fn expand_layout(src: &str) -> syn::Result<String> {
     let item_struct: ItemStruct = syn::parse_str(src)?;
     expand_storage(item_struct).map(|ts| ts.to_string())
+}
+
+fn expand_transient_layout(src: &str) -> syn::Result<String> {
+    let item_struct: ItemStruct = syn::parse_str(src)?;
+    expand_transient(item_struct).map(|ts| ts.to_string())
 }
 
 #[test]
@@ -344,4 +349,231 @@ fn nested_mapping_generates_flattened_accessor() {
 fn storage_layout_rejects_tuple_struct() {
     let err = expand_layout("struct TokenStorage(U256);").unwrap_err();
     assert!(err.to_string().contains("named fields"));
+}
+
+// --- transient layouts -------------------------------------------------
+//
+// The flavors have identical accessor *signatures* and differ only in which
+// opcode ends up being emitted, so a type-check can't catch a mix-up — these
+// assertions on the generated tokens are the only thing that can.
+
+#[test]
+fn transient_layout_targets_the_transient_types() {
+    let out = expand_transient_layout(
+        r#"
+        struct VaultTransient {
+            pending_amount: U256,
+            deltas: Mapping<Address, U256>,
+        }
+        "#,
+    )
+    .unwrap();
+
+    assert!(out.contains("impl :: std_evm :: TransientLayout for VaultTransient"));
+    assert!(out.contains("impl VaultTransientAccess for :: std_evm :: TransientStorage < VaultTransient >"));
+
+    // Slots and mapping views must be the transient ones — TLOAD/TSTORE.
+    assert!(out.contains(":: std_evm :: TransientSlot :: < U256 > :: new (0u64)"));
+    assert!(out.contains("fn deltas (& self) -> :: std_evm :: TransientMappingRef < '_ , Address , U256 >"));
+    assert!(out.contains("fn deltas_mut (& mut self) -> :: std_evm :: TransientMappingMut < '_ , Address , U256 >"));
+
+    // ...and never the persistent ones.
+    assert!(
+        !out.contains(":: std_evm :: Slot :: <"),
+        "a transient layout must not reach for the SLOAD/SSTORE slot type: {out}"
+    );
+    assert!(!out.contains(":: std_evm :: MappingRef"));
+    assert!(!out.contains(":: std_evm :: MappingMut"));
+}
+
+#[test]
+fn transient_slots_number_from_zero_independently() {
+    // Transient has its own address space, so its first field is slot 0 even
+    // though a persistent layout also starts there.
+    let out = expand_transient_layout(
+        r#"
+        struct VaultTransient {
+            locked: bool,
+            pending_amount: U256,
+        }
+        "#,
+    )
+    .unwrap();
+
+    assert!(out.contains(":: std_evm :: TransientSlot :: < bool > :: new (0u64)"));
+    assert!(out.contains(":: std_evm :: TransientSlot :: < U256 > :: new (1u64)"));
+}
+
+#[test]
+fn transient_bool_field_gets_an_raii_guard() {
+    let out = expand_transient_layout(
+        r#"
+        struct VaultTransient {
+            locked: bool,
+            pending_amount: U256,
+        }
+        "#,
+    )
+    .unwrap();
+
+    assert!(out.contains("fn locked_guard (& mut self) -> :: std_evm :: TransientGuard"));
+    assert!(out.contains(":: std_evm :: TransientGuard :: acquire (:: std_evm :: U256 :: from_u64 (0u64))"));
+    // Non-bool fields have no flag to clear.
+    assert!(!out.contains("pending_amount_guard"));
+}
+
+#[test]
+fn persistent_bool_field_gets_no_guard() {
+    // Persistent storage never auto-clears, so there is no clearing hazard
+    // and nothing to guard.
+    let out = expand_layout(
+        r#"
+        struct TokenStorage {
+            paused: bool,
+        }
+        "#,
+    )
+    .unwrap();
+
+    assert!(!out.contains("paused_guard"));
+    assert!(!out.contains("TransientGuard"));
+}
+
+#[test]
+fn transient_layout_rejects_tuple_struct() {
+    let err = expand_transient_layout("struct VaultTransient(bool);").unwrap_err();
+    assert!(err.to_string().contains("named fields"));
+    assert!(err.to_string().contains("#[transient]"));
+}
+
+// --- threading both handles --------------------------------------------
+
+#[test]
+fn both_handles_are_threaded_in_declared_order() {
+    let out = expand(
+        r#"
+        impl Vault {
+            pub fn withdraw(
+                s: &mut Storage<VaultStorage>,
+                t: &mut TransientStorage<VaultTransient>,
+                amount: U256,
+            ) {}
+        }
+        "#,
+    )
+    .unwrap();
+
+    // One `with_*` per handle, nested so both bindings are live.
+    assert!(out.contains(":: std_evm :: with_storage_mut :: < VaultStorage , _ >"));
+    assert!(out.contains(":: std_evm :: with_transient_storage_mut :: < VaultTransient , _ >"));
+    // The call passes them positionally, handles first, in declared order.
+    assert!(
+        out.contains("< Vault > :: withdraw (storage , transient , arg0)"),
+        "handles must be passed in declared order: {out}"
+    );
+}
+
+#[test]
+fn transient_handle_alone_is_threaded() {
+    let out = expand(
+        r#"
+        impl Vault {
+            pub fn pending(t: &TransientStorage<VaultTransient>) -> U256 { U256::ZERO }
+        }
+        "#,
+    )
+    .unwrap();
+
+    assert!(out.contains(":: std_evm :: with_transient_storage :: < VaultTransient , _ >"));
+    assert!(!out.contains("with_transient_storage_mut"));
+    assert!(!out.contains(":: std_evm :: with_storage"));
+}
+
+#[test]
+fn handles_are_excluded_from_the_abi_signature() {
+    // Both handles are injected by the dispatcher, never decoded from
+    // calldata. Missing one here wouldn't fail to compile — it would hash
+    // into the selector as `bytes32` and silently make the method
+    // unreachable from every other tool in the ecosystem.
+    let out = expand(
+        r#"
+        impl Vault {
+            pub fn withdraw(
+                s: &mut Storage<VaultStorage>,
+                t: &mut TransientStorage<VaultTransient>,
+                who: Address,
+            ) {}
+        }
+        "#,
+    )
+    .unwrap();
+    assert!(out.contains("type Args = (Address ,) ;"), "{out}");
+
+    let transient_only = expand(
+        r#"
+        impl Vault {
+            pub fn withdraw(t: &mut TransientStorage<VaultTransient>, who: Address) {}
+        }
+        "#,
+    )
+    .unwrap();
+    let no_handle = expand(
+        r#"
+        impl Vault {
+            pub fn withdraw(who: Address) {}
+        }
+        "#,
+    )
+    .unwrap();
+    let selector_of = |s: &str| {
+        let i = s.find("const SELECTOR").expect("a SELECTOR const");
+        s[i..i + 80].to_string()
+    };
+    assert_eq!(
+        selector_of(&transient_only),
+        selector_of(&no_handle),
+        "a transient handle must not change the selector"
+    );
+}
+
+#[test]
+fn duplicate_handle_of_one_kind_errors() {
+    let err = expand(
+        r#"
+        impl Vault {
+            pub fn withdraw(a: &TransientStorage<A>, b: &TransientStorage<B>) {}
+        }
+        "#,
+    )
+    .unwrap_err();
+    assert!(err.to_string().contains("at most one `TransientStorage` handle"));
+}
+
+#[test]
+fn handle_after_an_abi_param_errors() {
+    let err = expand(
+        r#"
+        impl Vault {
+            pub fn withdraw(who: Address, t: &mut TransientStorage<VaultTransient>) {}
+        }
+        "#,
+    )
+    .unwrap_err();
+    assert!(err.to_string().contains("must come before any ABI parameters"));
+}
+
+#[test]
+fn bare_transient_storage_without_layout_type_errors() {
+    let err = expand(
+        r#"
+        impl Vault {
+            pub fn pending(t: &TransientStorage) -> U256 { U256::ZERO }
+        }
+        "#,
+    )
+    .unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("`TransientStorage` needs a layout type argument")
+    );
 }

@@ -26,7 +26,7 @@ fmt:
 # ---------------------------------------------------------------
 
 # Build the backend codegen and the target-side crates
-build: build-backend build-std
+build: build-backend build-std build-examples
 
 # Build the backend codegen
 build-backend: build-shared
@@ -48,6 +48,10 @@ build-std: build-shared
 build-shared:
     cargo +stable build -p evm-isa
     cargo +nightly build -p evm-isa
+
+build-examples:
+    cargo build -p my-first-contract
+
 
 
 # ---------------------------------------------------------------

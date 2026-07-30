@@ -19,7 +19,7 @@ mod signature;
 mod tests;
 
 use contract::expand_contract;
-use layout::expand_storage;
+use layout::{expand_storage, expand_transient};
 
 /// Mark an `impl` block as an EVM contract. See the crate-level docs.
 #[proc_macro_attribute]
@@ -83,6 +83,26 @@ pub fn storage(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let item_struct = parse_macro_input!(item as ItemStruct);
     match expand_storage(item_struct) {
+        Ok(ts) => ts.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+/// Turn a plain struct into a *transient* storage layout — `#[storage]`'s
+/// counterpart on `TLOAD`/`TSTORE`, numbering from 0 in transient's own slot
+/// address space. `bool` fields additionally get a `{field}_guard()` RAII
+/// accessor, because a transient flag left set lingers to the end of the
+/// transaction. See `design/std-evm-storage-spec.md` §7.
+#[proc_macro_attribute]
+pub fn transient(attr: TokenStream, item: TokenStream) -> TokenStream {
+    if !attr.is_empty() {
+        return syn::Error::new(proc_macro2::Span::call_site(), "#[transient] takes no arguments")
+            .to_compile_error()
+            .into();
+    }
+
+    let item_struct = parse_macro_input!(item as ItemStruct);
+    match expand_transient(item_struct) {
         Ok(ts) => ts.into(),
         Err(e) => e.to_compile_error().into(),
     }

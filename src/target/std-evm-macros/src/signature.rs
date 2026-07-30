@@ -25,7 +25,7 @@ pub(crate) fn eth_signature(method: &ImplItemFn) -> syn::Result<String> {
         .inputs
         .iter()
         .filter_map(|arg| match arg {
-            FnArg::Typed(pt) if !is_storage_param(&pt.ty) => Some(rust_ty_to_solidity(&pt.ty)),
+            FnArg::Typed(pt) if !is_handle_param(&pt.ty) => Some(rust_ty_to_solidity(&pt.ty)),
             _ => None,
         })
         .collect();
@@ -33,12 +33,21 @@ pub(crate) fn eth_signature(method: &ImplItemFn) -> syn::Result<String> {
     Ok(format!("{name}({})", params.join(",")))
 }
 
-/// `&Storage`/`&mut Storage` isn't an ABI-visible parameter — the
-/// dispatcher injects it, it's never decoded from calldata.
-pub(crate) fn is_storage_param(ty: &Type) -> bool {
+/// Whether `ty` is a storage handle — `&`/`&mut` of `Storage<T>` or
+/// `TransientStorage<T>`.
+///
+/// Neither is an ABI-visible parameter: the dispatcher injects them, they are
+/// never decoded from calldata. Missing one here is not a compile error but a
+/// silent wrong selector, since the handle would be hashed into the signature
+/// as `bytes32`.
+pub(crate) fn is_handle_param(ty: &Type) -> bool {
     match ty {
-        Type::Reference(r) => is_storage_param(&r.elem),
-        Type::Path(tp) => tp.path.segments.last().is_some_and(|s| s.ident == "Storage"),
+        Type::Reference(r) => is_handle_param(&r.elem),
+        Type::Path(tp) => tp
+            .path
+            .segments
+            .last()
+            .is_some_and(|s| s.ident == "Storage" || s.ident == "TransientStorage"),
         _ => false,
     }
 }

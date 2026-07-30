@@ -2,17 +2,27 @@
 
 use tiny_keccak::{Hasher, Keccak};
 
+/// The full 32-byte Keccak-256 digest of `bytes`.
+///
+/// The same hash the EVM's `KECCAK256` opcode computes, in software — for the
+/// places that need a digest at *compile* time (selectors) or as a constant
+/// (namespaced storage slots), where an opcode isn't available.
+pub fn keccak256(bytes: &[u8]) -> [u8; 32] {
+    let mut output = [0u8; 32];
+    let mut hasher = Keccak::v256();
+    hasher.update(bytes);
+    hasher.finalize(&mut output);
+    output
+}
+
 /// Compute the 4-byte Solidity selector `keccak256(sig)[..4]` for a canonical
 /// function signature string such as `"transfer(address,uint256)"`.
 ///
 /// This is the single source of truth shared by `std-evm-macros` (which emits
 /// `__evm_fn_XXXXXXXX` symbols at compile time) and the runtime dispatcher.
 pub fn selector(sig: &str) -> [u8; 4] {
-    let mut output = [0u8; 32];
-    let mut hasher = Keccak::v256();
-    hasher.update(sig.as_bytes());
-    hasher.finalize(&mut output);
-    [output[0], output[1], output[2], output[3]]
+    let d = keccak256(sig.as_bytes());
+    [d[0], d[1], d[2], d[3]]
 }
 
 #[cfg(test)]
