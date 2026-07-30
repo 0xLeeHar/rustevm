@@ -9,15 +9,17 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use syn::{ItemImpl, parse_macro_input};
+use syn::{ItemImpl, ItemStruct, parse_macro_input};
 
 mod attrs;
 mod contract;
+mod layout;
 mod signature;
 #[cfg(test)]
 mod tests;
 
 use contract::expand_contract;
+use layout::{expand_storage, expand_transient};
 
 /// Mark an `impl` block as an EVM contract. See the crate-level docs.
 #[proc_macro_attribute]
@@ -66,4 +68,42 @@ pub fn receive(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn selector(attr: TokenStream, item: TokenStream) -> TokenStream {
     attrs::inert("selector", attr, item)
+}
+
+/// Turn a plain struct into a storage layout: assigns each field a slot in
+/// declaration order and generates typed accessors. See
+/// `design/std-evm-storage-spec.md`.
+#[proc_macro_attribute]
+pub fn storage(attr: TokenStream, item: TokenStream) -> TokenStream {
+    if !attr.is_empty() {
+        return syn::Error::new(proc_macro2::Span::call_site(), "#[storage] takes no arguments")
+            .to_compile_error()
+            .into();
+    }
+
+    let item_struct = parse_macro_input!(item as ItemStruct);
+    match expand_storage(item_struct) {
+        Ok(ts) => ts.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+/// Turn a plain struct into a *transient* storage layout — `#[storage]`'s
+/// counterpart on `TLOAD`/`TSTORE`, numbering from 0 in transient's own slot
+/// address space. `bool` fields additionally get a `{field}_guard()` RAII
+/// accessor, because a transient flag left set lingers to the end of the
+/// transaction. See `design/std-evm-storage-spec.md` §7.
+#[proc_macro_attribute]
+pub fn transient(attr: TokenStream, item: TokenStream) -> TokenStream {
+    if !attr.is_empty() {
+        return syn::Error::new(proc_macro2::Span::call_site(), "#[transient] takes no arguments")
+            .to_compile_error()
+            .into();
+    }
+
+    let item_struct = parse_macro_input!(item as ItemStruct);
+    match expand_transient(item_struct) {
+        Ok(ts) => ts.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
 }
