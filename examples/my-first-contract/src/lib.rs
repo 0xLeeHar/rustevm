@@ -16,7 +16,6 @@ pub struct ContractStorage {
 #[transient]
 pub struct TempStorage {
     withdrawing: bool,
-    shooting: bool,
     pending: Mapping<Address, U256>,
 }
 
@@ -44,8 +43,6 @@ impl MyFirstContract {
         amount: U256,
     ) {
         let _guard = t.withdrawing_guard();
-
-        t.set_withdrawing(true);
 
         // Park the in-flight amount where a reentrant call can read it —
         // ~100 gas, against ~20,000 for a persistent slot.
