@@ -1,0 +1,10 @@
+[package]
+name = "evm-testkit"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+evm-codegen = { path = "../../backend/evm-codegen" }
+evm-isa = { path = "../../shared/evm-isa" }
+revm = "42.0.1"
