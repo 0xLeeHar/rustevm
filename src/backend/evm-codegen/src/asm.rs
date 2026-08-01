@@ -19,6 +19,8 @@ use std::fmt;
 
 use evm_isa::{Fork, OpForm, by_byte, by_mnemonic, op_form};
 
+pub mod disasm;
+
 /// EIP-170's deployed-bytecode limit.
 ///
 /// Informational — [`Asm::finish`] does not enforce it, because plenty of
