@@ -7,11 +7,16 @@ default:
 
 # Test the workspace
 test:
-    cargo test --workspace
+    # rustc_codegen_evm links rustc's internals via `rustc_private`, so it only
+    # builds on nightly. The rest of the workspace is stable, and stays that way.
+    cargo test --workspace --exclude rustc_codegen_evm
+    cargo +nightly test -p rustc_codegen_evm
 
 # General clippy and fmt checks
 check:
-    cargo clippy --workspace --all-targets -- -D warnings
+    # Same split as `test`: rustc_codegen_evm is the only nightly-pinned crate.
+    cargo clippy --workspace --all-targets --exclude rustc_codegen_evm -- -D warnings
+    cargo +nightly clippy -p rustc_codegen_evm --all-targets -- -D warnings
     cargo fmt --check
     # evm-isa is read by both a nightly-only backend and a stable-only proc-macro
     # crate; guard against a nightly-only feature creeping into its stable half.

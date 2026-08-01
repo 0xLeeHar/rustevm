@@ -40,12 +40,7 @@ fn a_forward_jump_lands_where_the_label_was_bound() {
     // there — the skipped ADD would turn the 1 into a 3.
     let mut a = Asm::new(Fork::Cancun);
     let end = a.label();
-    a
-        .push(1u8)
-        .push_label(end)
-        .op("JUMP")
-        .push(2u8)
-        .op("ADD").bind(end);
+    a.push(1u8).push_label(end).op("JUMP").push(2u8).op("ADD").bind(end);
 
     ret_top(&mut a);
 

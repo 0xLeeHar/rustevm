@@ -199,7 +199,7 @@ fn encode_bytes(data: &[u8]) -> Vec<u8> {
     out.extend_from_slice(data);
     let rem = data.len() % 32;
     if rem != 0 {
-        out.extend(core::iter::repeat(0u8).take(32 - rem));
+        out.extend(core::iter::repeat_n(0u8, 32 - rem));
     }
     out
 }
@@ -334,7 +334,7 @@ mod tests {
     fn sample() -> Vec<u8> {
         encode_tuple(&[
             U256::from_u64(0x11).to_component(),
-            (&[0xAAu8, 0xBB][..]).to_component(),
+            [0xAAu8, 0xBB][..].to_component(),
             true.to_component(),
         ])
     }
@@ -360,7 +360,7 @@ mod tests {
         let enc = sample();
         assert_eq!(U256::decode(&enc, 0x00).unwrap(), U256::from_u64(0x11));
         assert_eq!(Vec::<u8>::decode(&enc, 0x20).unwrap(), alloc::vec![0xAA, 0xBB]);
-        assert_eq!(bool::decode(&enc, 0x40).unwrap(), true);
+        assert!(bool::decode(&enc, 0x40).unwrap());
     }
 
     #[test]

@@ -25,6 +25,12 @@ impl EvmCodegenBackend {
     }
 }
 
+impl Default for EvmCodegenBackend {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// One codegen unit lowered to EVM bytecode, still in memory.
 pub struct EvmModule {
     pub name: String,
