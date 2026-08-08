@@ -48,16 +48,61 @@ struct Fixup {
 
 /// A 32-byte big-endian immediate. Construct via `From` rather than directly;
 /// [`Asm::push`] narrows it to the shortest `PUSH` that fits.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// Also serves as the IR's 256-bit literal — one word type per crate is the
+/// right number, and `ir` hands these straight back to [`Asm::push`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Immediate([u8; 32]);
 
 impl Immediate {
     /// Significant bytes — the width the value actually needs. Zero for zero.
-    fn width(&self) -> usize {
+    pub fn width(&self) -> usize {
         match self.0.iter().position(|&b| b != 0) {
             Some(first) => 32 - first,
             None => 0,
         }
+    }
+
+    /// Significant *bits* — the narrowest type this value fits in unsigned.
+    ///
+    /// `ir::verify` uses it to reject a constant too wide for the type it was
+    /// given, which is the one way a `Const` can violate the representation
+    /// invariant.
+    pub fn bit_width(&self) -> u16 {
+        match self.0.iter().position(|&b| b != 0) {
+            Some(first) => (32 - first) as u16 * 8 - self.0[first].leading_zeros() as u16,
+            None => 0,
+        }
+    }
+
+    /// The big-endian bytes.
+    pub const fn to_be_bytes(&self) -> [u8; 32] {
+        self.0
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.width() == 0
+    }
+}
+
+impl fmt::LowerHex for Immediate {
+    /// Prints the significant bytes only — `0x2a`, not thirty-one leading
+    /// zeros. Zero prints as `0x0`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let width = self.width();
+        if width == 0 {
+            return write!(f, "0");
+        }
+        for byte in &self.0[32 - width..] {
+            write!(f, "{byte:02x}")?;
+        }
+        Ok(())
+    }
+}
+
+impl From<bool> for Immediate {
+    fn from(b: bool) -> Self {
+        Immediate::from(u8::from(b))
     }
 }
 

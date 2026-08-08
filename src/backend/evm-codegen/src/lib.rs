@@ -13,7 +13,9 @@
 //! compiler and `evm-sys-macros` read one table.
 
 pub mod asm;
+pub mod ir;
 
 pub use asm::disasm;
 pub use asm::{Asm, AsmError, Label, MAX_CONTRACT_SIZE};
 pub use disasm::{Instruction, disassemble, jumpdests, listing};
+pub use ir::{Block, Effects, Func, Inst, IntTy, Repair, Signature, Type, Value};
